@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-03-13T12:54:34.831606+05:30 by Eclipse SUMO duarouter 1.26.0
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="manhattan.net.xml"/>
+        <additional-files value="manhattan_additionals.add.xml"/>
+        <route-files value="bus_test_trip.xml"/>
+    </input>
+
+    <output>
+        <output-file value="bus_test_route.rou.xml"/>
+    </output>
+
+    <report>
+        <ignore-errors value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="bus_type" vClass="bus"/>
+    <vehicle id="test" type="bus_type" depart="0.00">
+        <route edges="397795463#0 1117867040#1 194926851#0 846142553#0 397795463#0"/>
+        <stop busStop="bus_stop_26" duration="20.00"/>
+        <stop busStop="bus_stop_58" duration="20.00"/>
+    </vehicle>
+</routes>

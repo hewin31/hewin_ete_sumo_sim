@@ -1,0 +1,9 @@
+<types xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.20" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/types_file.xsd">
+    <type id="highway.living_street" priority="2" numLanes="1" speed="8.0" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" oneway="0" />
+    <type id="highway.primary" priority="12" numLanes="3" speed="13.9" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" oneway="0" />
+    <type id="highway.residential" priority="3" numLanes="2" speed="11.0" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" oneway="0" />
+    <type id="highway.secondary" priority="11" numLanes="3" speed="13.9" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" oneway="0" />
+    <type id="highway.service" priority="1" numLanes="1" speed="8.0" allow="pedestrian delivery bicycle" oneway="0" />
+    <type id="highway.unclassified" priority="4" numLanes="2" speed="11.0" disallow="tram rail_urban rail rail_electric rail_fast ship container cable_car subway aircraft wheelchair scooter drone" oneway="0" />
+
+</types>

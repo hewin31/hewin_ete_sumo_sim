@@ -1,0 +1,7 @@
+<routes>
+  <vType id="bus_type" vClass="bus"/>
+  <trip id="test" type="bus_type" depart="0" from="397795463#0" to="397795463#0" via="846142553#0">
+    <stop busStop="bus_stop_26" duration="20"/>
+    <stop busStop="bus_stop_58" duration="20"/>
+  </trip>
+</routes>

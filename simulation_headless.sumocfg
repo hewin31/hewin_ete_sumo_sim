@@ -1,0 +1,20 @@
+<configuration>
+
+<input>
+    <net-file value="manhattan.net.xml"/>
+    <route-files value="routes_bus.rou.xml,routes_moto.rou.xml,routes_car.rou.xml,routes_truck.rou.xml"/>
+    <additional-files value="manhattan_additionals.add.xml"/>
+</input>
+
+<time>
+    <begin value="0"/>
+    <end value="3600"/>
+</time>
+
+<output>
+    <tripinfo-output value="outputs/tripinfo.xml"/>
+</output>
+
+<!-- Runs as fast as possible for headless mode -->
+
+</configuration>

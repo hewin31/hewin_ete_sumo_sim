@@ -1,0 +1,4 @@
+<viewsettings>
+    <!-- Add an artificial delay in ms per simulation step (e.g., 50ms) so the user can see traffic -->
+    <delay value="50"/>
+</viewsettings>
