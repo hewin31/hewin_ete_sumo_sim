@@ -31,7 +31,7 @@ export const trafficService = {
       return response.data;
     } catch (err) {
       console.error("Failed to fetch traffic history:", err);
-      return trafficStats; // Fallback to mock
+      return []; // Return empty array instead of mock
     }
   },
   
@@ -41,7 +41,7 @@ export const trafficService = {
       return response.data;
     } catch (err) {
       console.error("Failed to fetch system overview:", err);
-      return systemOverview; // Fallback to mock
+      return {}; // Return empty object instead of mock
     }
   },
 

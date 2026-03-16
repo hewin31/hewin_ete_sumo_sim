@@ -38,22 +38,11 @@ const initDB = async () => {
       await db.query("INSERT INTO system_stats (key, value) VALUES ('total_junctions', '24')");
       await db.query("INSERT INTO system_stats (key, value) VALUES ('active_signals', '22')");
       await db.query("INSERT INTO system_stats (key, value) VALUES ('emergency_vehicles', '0')");
-      await db.query("INSERT INTO system_stats (key, value) VALUES ('detected_accidents', '1')");
-      await db.query("INSERT INTO system_stats (key, value) VALUES ('road_blocks', '1')");
+      await db.query("INSERT INTO system_stats (key, value) VALUES ('detected_accidents', '0')");
+      await db.query("INSERT INTO system_stats (key, value) VALUES ('road_blocks', '0')");
       await db.query("INSERT INTO system_stats (key, value) VALUES ('total_vehicles_detected', '0')");
-      console.log("✅ System statistics initialized in DB");
-    }
-
-    // Insert mock chart data if empty
-    const chartRows = await db.query("SELECT * FROM traffic_history");
-    if (chartRows.rows.length === 0) {
-        const mockData = [
-            ['08:00', 40, 400], ['09:00', 85, 850], ['10:00', 65, 650],
-            ['11:00', 75, 750], ['12:00', 55, 550], ['13:00', 45, 450], ['14:00', 50, 500]
-        ];
-        for (const [time, density, vehicles] of mockData) {
-            await db.query("INSERT INTO traffic_history (time, density, vehicles) VALUES ($1, $2, $3)", [time, density, vehicles]);
-        }
+      await db.query("INSERT INTO system_stats (key, value) VALUES ('overall_congestion', 'Low')");
+      console.log("✅ System statistics initialized in DB (Pure Mode)");
     }
 
   } catch (err) {
@@ -91,26 +80,36 @@ app.post('/api/stats/update', async (req, res) => {
   const { current_vehicles, current_density, has_emergency } = req.body;
   
   try {
-    // 1. Update Cumulative Total
+    // 1. Update Cumulative Total (Representative increment)
     await db.query(`
-      INSERT INTO system_stats (key, value) 
-      VALUES ('total_vehicles_detected', $1)
-      ON CONFLICT (key) DO UPDATE SET value = (system_stats.value::int + $1)::text
-    `, [current_vehicles]);
+      UPDATE system_stats SET value = (value::int + $1)::text 
+      WHERE key = 'total_vehicles_detected'
+    `, [Math.max(1, Math.floor(current_vehicles / 4))]);
 
-    // 2. Update Emergency Count if detected
+    // 2. Classify Congestion
+    let congestion = 'Low';
+    if (current_density > 70) congestion = 'High';
+    else if (current_density > 40) congestion = 'Medium';
+    
+    await db.query("UPDATE system_stats SET value = $1 WHERE key = 'overall_congestion'", [congestion]);
+
+    // 3. Update Emergency Count if detected
     if (has_emergency) {
         await db.query("UPDATE system_stats SET value = (value::int + 1)::text WHERE key = 'emergency_vehicles'");
     }
 
-    // 3. Add to History Chart (Simple grouping: one entry per minute/update)
-    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    await db.query(
-        "INSERT INTO traffic_history (time, density, vehicles) VALUES ($1, $2, $3)",
-        [timeNow, current_density, current_vehicles]
-    );
+    // 4. Add or Update Hourly History Chart (e.g., '15.00')
+    const timeNow = new Date();
+    const hourlyTime = timeNow.getHours().toString().padStart(2, '0') + '.00';
+    
+    const existingHour = await db.query("SELECT id FROM traffic_history WHERE time = $1", [hourlyTime]);
+    if (existingHour.rows.length > 0) {
+        await db.query("UPDATE traffic_history SET vehicles = $1, density = $2 WHERE time = $3", [current_vehicles, current_density, hourlyTime]);
+    } else {
+        await db.query("INSERT INTO traffic_history (time, density, vehicles) VALUES ($1, $2, $3)", [hourlyTime, current_density, current_vehicles]);
+    }
 
-    res.json({ success: true });
+    res.json({ success: true, congestion });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

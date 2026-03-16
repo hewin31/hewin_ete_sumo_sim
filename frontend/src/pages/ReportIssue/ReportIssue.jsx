@@ -6,7 +6,12 @@ import {
   Send, 
   CheckCircle2, 
   X,
-  Plus
+  FileText,
+  Info,
+  ShieldAlert,
+  ChevronRight,
+  ClipboardList,
+  RefreshCw
 } from 'lucide-react';
 import { trafficService } from '../../services/api';
 
@@ -55,7 +60,6 @@ const ReportIssue = () => {
     setIsSubmitting(false);
     setIsSuccess(true);
     
-    // Reset form after 3 seconds
     setTimeout(() => {
       setIsSuccess(false);
       setFormData({
@@ -69,93 +73,101 @@ const ReportIssue = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-text">Report System Issue</h2>
-        <p className="text-gray-500 mt-1">Submit infrastructure faults or technical anomalies</p>
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center justify-between border-b border-border pb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-3 lowercase first-letter:uppercase">
+            <ClipboardList size={24} className="text-primary" />
+            Infrastructure Fault Documentation
+          </h2>
+          <p className="text-sm text-slate-500 mt-1 uppercase tracking-wider font-medium">Internal System Deficiency Report Terminal</p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 border border-border text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+            Protocol: SF-902-12
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="card space-y-6">
+          <form onSubmit={handleSubmit} className="card space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-text ml-1">Select Junction</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Target Junction Assignment</label>
                 <div className="relative">
-                  <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <select 
                     name="junctionId"
                     value={formData.junctionId}
                     onChange={handleChange}
-                    className="input-field pl-10"
+                    className="input-field pl-10 h-10 font-medium"
                     required
                   >
-                    <option value="">Choose location...</option>
+                    <option value="">SELECT DESIGNATED LOCATION...</option>
                     {junctions.map(j => (
-                      <option key={j.id} value={j.id}>{j.name} ({j.id})</option>
+                      <option key={j.id} value={j.id}>{j.name.toUpperCase()} (ID: {j.id})</option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-text ml-1">Issue Type</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Classification of Anomaly</label>
                 <select 
                   name="issueType"
                   value={formData.issueType}
                   onChange={handleChange}
-                  className="input-field"
+                  className="input-field h-10 font-medium cursor-pointer"
                 >
                   <option>System Malfunction</option>
                   <option>Signal Hardware Failure</option>
                   <option>Camera/Sensor Fault</option>
                   <option>Network Latency</option>
                   <option>Pavement/Road Damage</option>
-                  <option>Other</option>
+                  <option>Other / Unclassified</option>
                 </select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-text ml-1">Description</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Technical Briefing (Detailed Analysis)</label>
               <textarea 
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className="input-field min-h-[150px] resize-none"
-                placeholder="Describe the issue in detail..."
+                className="input-field min-h-[160px] resize-none font-medium leading-relaxed"
+                placeholder="Include precise details regarding the anomaly, observer observations, and immediate impacts."
                 required
               ></textarea>
             </div>
 
-            <div className="space-y-4">
-              <label className="text-sm font-semibold text-text ml-1 block">Evidence (Optional)</label>
+            <div className="space-y-4 pt-4 border-t border-border">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Telemetric Evidence (Static Image Buffer)</label>
               <div className="flex flex-wrap gap-4">
                 {imagePreview ? (
-                  <div className="relative w-32 h-32 rounded-xl overflow-hidden shadow-md group">
+                  <div className="relative w-32 h-32 rounded-sm overflow-hidden border border-border group">
                     <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                     <button 
                       type="button"
                       onClick={() => setImagePreview(null)}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-slate-900/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <X size={14} />
+                      <X size={20} />
                     </button>
                   </div>
                 ) : (
-                  <label className="w-32 h-32 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-secondary transition-all text-gray-400 hover:text-secondary">
+                  <label className="w-32 h-32 border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-all text-slate-400 group">
                     <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                    <Upload size={24} />
-                    <span className="text-[10px] font-bold mt-2">UPLOAD</span>
+                    <Upload size={24} className="group-hover:text-primary transition-colors" />
+                    <span className="text-[10px] font-bold mt-2 uppercase tracking-widest">Upload File</span>
                   </label>
                 )}
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border flex items-center justify-between">
-               <div className="flex gap-4">
+            <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6">
+               <div className="flex gap-1 bg-slate-50 p-1 border border-border">
                  {['Low', 'Medium', 'High', 'Critical'].map(level => (
-                   <label key={level} className="flex items-center gap-2 cursor-pointer group">
+                   <label key={level} className="flex items-center cursor-pointer group">
                       <input 
                         type="radio" 
                         name="urgency" 
@@ -164,32 +176,33 @@ const ReportIssue = () => {
                         onChange={handleChange}
                         className="hidden" 
                       />
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      <span className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
                         formData.urgency === level 
-                          ? (level === 'Critical' ? 'bg-red-600 text-white shadow-lg shadow-red-200' : 'bg-primary text-white shadow-lg shadow-primary/20')
-                          : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'
+                          ? (level === 'Critical' ? 'bg-rose-600 text-white shadow-sm' : 'bg-primary text-white shadow-sm')
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-white'
                       }`}>
                         {level}
                       </span>
                    </label>
                  ))}
                </div>
+               
                <button 
                 type="submit" 
                 disabled={isSubmitting || isSuccess}
-                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold transition-all ${isSuccess ? 'bg-green-500 text-white' : 'btn-primary'}`}
+                className={`flex items-center gap-3 h-10 px-8 font-bold uppercase text-[11px] tracking-widest transition-all ${isSuccess ? 'bg-emerald-600 text-white' : 'btn-primary'}`}
               >
                 {isSubmitting ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <RefreshCw size={16} className="animate-spin" />
                 ) : isSuccess ? (
                   <>
-                    <CheckCircle2 size={20} />
-                    Report Submitted
+                    <CheckCircle2 size={16} />
+                    Transmission Received
                   </>
                 ) : (
                   <>
-                    <Send size={18} />
-                    Submit Report
+                    <Send size={14} />
+                    SUBMIT FORM
                   </>
                 )}
               </button>
@@ -198,45 +211,61 @@ const ReportIssue = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="card bg-primary text-white overflow-hidden relative">
-             <div className="absolute -right-8 -bottom-8 p-4 opacity-10">
-                <AlertTriangle size={160} />
+          <div className="card bg-[#1B365D] text-white">
+             <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                <Info size={18} className="text-slate-400" />
+                <h3 className="text-xs font-bold uppercase tracking-widest">Documentation Guidelines</h3>
              </div>
-             <h3 className="text-xl font-bold relative z-10">Submission Protocol</h3>
-             <ul className="mt-6 space-y-4 relative z-10">
+             <ul className="space-y-4">
                {[
-                 'Ensure accurate location ID',
-                 'Include timestamp if historical',
-                 'Clear photos of hardware damage',
-                 'Critical issues trigger auto-alert'
+                 'Ensure Sector Localization (J-ID parity)',
+                 'Verify Hardware Interface status',
+                 'Document Chromatic deviations',
+                 'Critical flags trigger immediate review'
                ].map((rule, i) => (
-                 <li key={i} className="flex items-center gap-3 text-sm text-white/80">
-                   <div className="w-1.5 h-1.5 bg-accent rounded-full"></div>
-                   {rule}
+                 <li key={i} className="flex items-start gap-3">
+                   <div className="w-1.5 h-1.5 bg-accent-light rounded-sm mt-1 flex-shrink-0" />
+                   <p className="text-[11px] font-medium leading-relaxed text-slate-200 uppercase tracking-tight">{rule}</p>
                  </li>
                ))}
              </ul>
+             <div className="mt-8 pt-6 border-t border-white/10">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                    By submitting this form, you certify that the analysis provided is accurate as per operational telemetry.
+                </p>
+             </div>
           </div>
 
-          <div className="card">
-             <h3 className="font-bold text-lg text-text mb-4">Recent Reports</h3>
-             <div className="space-y-4 text-sm">
-                <div className="p-3 bg-gray-50 rounded-lg border border-border">
-                   <div className="flex justify-between items-start mb-1">
-                     <span className="font-bold text-text">Faulty Camera</span>
-                     <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">PENDING</span>
+          <div className="card !p-0">
+             <div className="p-4 border-b border-border bg-slate-50 flex items-center justify-between">
+                <h3 className="font-bold text-xs text-slate-900 uppercase tracking-widest">Submission History</h3>
+                <span className="text-[10px] font-mono text-slate-400">LOG-REGS-24H</span>
+             </div>
+             <div className="divide-y divide-border">
+                <div className="p-4 hover:bg-slate-50 transition-colors group cursor-pointer">
+                   <div className="flex justify-between items-start mb-2">
+                     <span className="font-bold text-slate-800 text-xs">SENSOR DRIFT (J-004)</span>
+                     <span className="text-[9px] font-black bg-slate-100 text-slate-500 px-2 py-0.5 border border-border">QUEUED</span>
                    </div>
-                   <p className="text-gray-500 text-xs">J-004 Lexington Ave</p>
+                   <div className="flex items-center justify-between mt-2">
+                        <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">14:02 // OPERATOR: A.ZEN</p>
+                        <ChevronRight size={14} className="text-slate-300 group-hover:text-primary transition-colors" />
+                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg border border-border">
-                   <div className="flex justify-between items-start mb-1">
-                     <span className="font-bold text-text">Signal Drift</span>
-                     <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">FIXED</span>
+                <div className="p-4 hover:bg-slate-50 transition-colors group cursor-pointer">
+                   <div className="flex justify-between items-start mb-2">
+                     <span className="font-bold text-slate-800 text-xs">HARDWARE FAILURE (J-002)</span>
+                     <span className="text-[9px] font-black bg-emerald-50 text-emerald-600 px-2 py-0.5 border border-emerald-100">RESOLVED</span>
                    </div>
-                   <p className="text-gray-500 text-xs">J-002 Broadway</p>
+                   <div className="flex items-center justify-between mt-2">
+                        <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">10:55 // OPERATOR: B.SYS</p>
+                        <ChevronRight size={14} className="text-slate-300 group-hover:text-primary transition-colors" />
+                   </div>
                 </div>
              </div>
-             <button className="w-full mt-4 text-secondary text-sm font-bold hover:underline">View History</button>
+             <button className="w-full h-10 text-primary text-[10px] font-bold uppercase tracking-widest bg-slate-50 border-t border-border hover:bg-slate-100 transition-colors">
+                Open Directory Archives
+             </button>
           </div>
         </div>
       </div>

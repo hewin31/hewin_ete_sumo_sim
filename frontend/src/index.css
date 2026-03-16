@@ -2,53 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@layer base {
+  :root {
+    --bg-main: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-main: #E2E8F0;
+    --primary: #1B365D;
+    --secondary: #64748B;
+    --accent: #0284C7;
+  }
 
-  color-scheme: light dark;
-  color: #334155;
-  background-color: #F8FAFC;
+  body {
+    @apply bg-background text-text antialiased;
+    font-feature-settings: "tnum" on, "lnum" on;
+  }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  min-width: 320px;
-  min-height: 100vh;
+  /* Force tabular numbers for all numeric data */
+  td, .number, [data-number] {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-border p-4 transition-all duration-300 hover:shadow-md;
+    @apply bg-white border border-border shadow-sm p-6 overflow-hidden;
   }
-  
+
   .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors disabled:opacity-50;
+    @apply bg-primary text-white px-4 py-2 text-sm font-semibold hover:bg-primary-light active:bg-primary-dark transition-colors border border-primary-dark;
   }
-  
+
   .btn-secondary {
-    @apply bg-secondary text-white px-4 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors;
+    @apply bg-white text-secondary-dark px-4 py-2 text-sm font-semibold border border-border hover:bg-slate-50 active:bg-slate-100 transition-colors;
   }
 
   .input-field {
-    @apply w-full px-4 py-2 rounded-lg border border-border focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition-all bg-white;
+    @apply w-full px-3 py-2 bg-white border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-all placeholder:text-slate-400;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-2.5 text-sm transition-colors;
+  }
+
+  .nav-link-active {
+    @apply bg-primary-light/10 text-primary font-semibold border-l-4 border-primary bg-primary bg-opacity-5;
+  }
+
+  .nav-link-inactive {
+    @apply text-slate-500 hover:bg-slate-50 hover:text-slate-700;
+  }
+
+  .status-pill {
+    @apply px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-sm;
+  }
+
+  /* Traffic Control elements */
+  .traffic-dot {
+    @apply w-3 h-3 rounded-full;
   }
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Scrollbar styling for enterprise look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.traffic-dot {
-  @apply w-4 h-4 rounded-full;
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 border-2 border-slate-100 rounded-full hover:bg-slate-500;
 }

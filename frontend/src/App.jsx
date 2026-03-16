@@ -44,6 +44,9 @@ const AppContent = ({ isAuthenticated, onLogin, onLogout }) => {
   );
 };
 
+import { SimulationProvider } from './context/SimulationContext';
+import { ThemeProvider } from './context/ThemeContext';
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -52,11 +55,15 @@ function App() {
 
   return (
     <Router>
-      <AppContent 
-        isAuthenticated={isAuthenticated} 
-        onLogin={handleLogin} 
-        onLogout={handleLogout} 
-      />
+      <ThemeProvider>
+        <SimulationProvider>
+          <AppContent 
+            isAuthenticated={isAuthenticated} 
+            onLogin={handleLogin} 
+            onLogout={handleLogout} 
+          />
+        </SimulationProvider>
+      </ThemeProvider>
     </Router>
   );
 }

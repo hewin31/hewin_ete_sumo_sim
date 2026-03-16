@@ -4,10 +4,15 @@ import {
   Activity, 
   AlertCircle, 
   TrendingUp, 
-  MapPin, 
   Car,
   Clock,
-  ArrowRight
+  Shield,
+  Power,
+  Database,
+  Grid,
+  List,
+  RefreshCw,
+  FileText
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -19,197 +24,254 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { trafficService } from '../../services/api';
+import { useSimulation } from '../../context/SimulationContext';
 
-const StatCard = ({ title, value, icon: Icon, color, trend }) => (
-  <div className="card flex items-center justify-between group">
-    <div>
-      <p className="text-gray-500 text-sm font-medium">{title}</p>
-      <h3 className="text-2xl font-bold text-text mt-1">{value}</h3>
-      {trend && (
-        <p className={`text-xs mt-2 flex items-center gap-1 ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
-          <TrendingUp size={12} className={trend < 0 ? 'rotate-180' : ''} />
-          <span>{Math.abs(trend)}% from last hour</span>
-        </p>
-      )}
+const SummaryItem = ({ label, value, icon: Icon, colorClass }) => (
+    <div className="flex items-center gap-4 p-4 border-r border-border last:border-r-0 flex-1">
+        <div className={`p-2 rounded-sm ${colorClass} bg-opacity-10 text-current`}>
+            <Icon size={20} />
+        </div>
+        <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{label}</p>
+            <p className="text-xl font-bold text-slate-900 tabular-nums">{value}</p>
+        </div>
     </div>
-    <div className={`p-4 rounded-xl ${color} text-white shadow-lg`}>
-      <Icon size={24} />
-    </div>
-  </div>
 );
 
 const Home = () => {
-  const [stats, setStats] = useState(null);
+  const [dbStats, setDbStats] = useState(null);
   const [chartData, setChartData] = useState([]);
-  const [activeAlerts, setActiveAlerts] = useState([]);
+  const { isSystemOn, toggleSystem, detectionData } = useSimulation();
+
+  const fetchStats = async () => {
+    try {
+      const overview = await trafficService.getSystemOverview();
+      setDbStats(overview);
+    } catch (err) {
+      console.error("Stats Sync Error:", err);
+    }
+  };
+
+  const fetchChartData = async () => {
+    try {
+      const history = await trafficService.getTrafficStats();
+      setChartData(history);
+    } catch (err) {
+      console.error("Chart Sync Error:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const overview = await trafficService.getSystemOverview();
-      const currentStats = await trafficService.getTrafficStats();
-      const alerts = await trafficService.getAlerts();
-      
-      setStats(overview);
-      setChartData(currentStats);
-      setActiveAlerts(alerts.filter(a => a.status === 'Active'));
-    };
-    fetchData();
-
-    // Auto-refresh every 10 seconds to show incremental YOLO detections
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
+    fetchStats();
+    fetchChartData();
+    const statsInterval = setInterval(fetchStats, 5000);
+    return () => clearInterval(statsInterval);
   }, []);
 
-  if (!stats) return <div className="animate-pulse flex items-center justify-center h-screen text-primary font-bold">Synchronizing Neural Data...</div>;
+  if (!dbStats) return (
+    <div className="flex items-center justify-center h-[60vh] text-slate-400">
+        <RefreshCw size={24} className="animate-spin mr-3" />
+        <span className="text-sm font-semibold uppercase tracking-widest">Awaiting System Data...</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6">
-        <StatCard title="Total Junctions" value={stats.total_junctions} icon={MapPin} color="bg-primary" />
-        <StatCard title="Active Signals" value={stats.active_signals} icon={Activity} color="bg-secondary" />
-        <StatCard title="Total Vehicles" value={stats.total_vehicles_detected} icon={Car} color="bg-indigo-600" />
-        <StatCard title="Emergency" value={stats.emergency_vehicles} icon={Users} color="bg-traffic-blue" />
-        <StatCard title="Accidents" value={stats.detected_accidents} icon={AlertCircle} color="bg-traffic-purple" />
-        <StatCard title="Road Blocks" value={stats.road_blocks} icon={Car} color="bg-traffic-black" />
-        <StatCard title="Congestion" value={stats.overall_congestion || 'Low'} icon={TrendingUp} color="bg-traffic-orange" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Traffic Chart */}
-        <div className="lg:col-span-2 card">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-bold text-lg text-text">Live Traffic Analytics</h3>
-              <p className="text-sm text-gray-500">Real-time detection synchronization</p>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-green-500 bg-green-50 px-3 py-1.5 rounded-full">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
-                POLLING ACTIVE
-            </div>
-          </div>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorDensity" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorVehicles" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2)'}}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="density" 
-                  name="Density (%)"
-                  stroke="#4F46E5" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorDensity)" 
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="vehicles" 
-                  name="Vehicles"
-                  stroke="#10B981" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorVehicles)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">System Operational Overview</h2>
+          <p className="text-sm text-slate-500">Real-time infrastructure monitoring and traffic analytics</p>
         </div>
-
-        {/* Live Alerts Sidebar */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-bold text-lg text-text">Live Incidents</h3>
-            <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-full text-xs font-bold animate-pulse">LIVE</span>
-          </div>
-          <div className="space-y-4">
-            {activeAlerts.length > 0 ? activeAlerts.map(alert => (
-              <div key={alert.id} className="flex gap-4 p-3 rounded-lg bg-background hover:bg-gray-100 transition-colors cursor-pointer group border border-transparent hover:border-border">
-                <div className={`w-2 h-10 rounded-full flex-shrink-0 ${
-                  alert.type === 'Accident' ? 'bg-traffic-purple' : 
-                  alert.type === 'Road Block' ? 'bg-traffic-black' : 'bg-traffic-blue'
-                }`}></div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm text-text truncate">{alert.type}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-1">
-                    <MapPin size={10} /> {alert.location}
-                  </p>
-                </div>
-                <button className="self-center p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <ArrowRight size={14} className="text-gray-400" />
-                </button>
-              </div>
-            )) : (
-                <div className="py-10 text-center space-y-3">
-                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                        <Shield className="text-slate-300" size={24} />
-                    </div>
-                    <p className="text-sm text-slate-400 font-medium">No critical incidents detected.</p>
-                </div>
-            )}
-            <button className="w-full py-4 text-xs text-secondary font-black uppercase tracking-widest hover:underline border-t border-border mt-4">
-              Access Full Archive
+        <div className="flex items-center gap-3">
+            <button className="btn-secondary flex items-center gap-2">
+                <FileText size={16} /> Generate Report
             </button>
-          </div>
+            <button 
+                onClick={toggleSystem}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-bold border transition-all ${
+                    isSystemOn 
+                    ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' 
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                }`}
+            >
+                <Power size={16} />
+                {isSystemOn ? 'SYSTEM SHUTDOWN' : 'ACTIVATE ENGINE'}
+            </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="card group">
+      {/* Summary Dashboard */}
+      <div className="card !p-0 flex flex-wrap shadow-sm">
+        <SummaryItem 
+            label="Total Volume" 
+            value={dbStats.total_vehicles_detected || '0'} 
+            icon={Car} 
+            colorClass="text-primary" 
+        />
+        <SummaryItem 
+            label="Active Sensors" 
+            value={isSystemOn ? '12' : '0'} 
+            icon={Database} 
+            colorClass="text-accent" 
+        />
+        <SummaryItem 
+            label="Emergency Priority" 
+            value={dbStats.emergency_vehicles || '0'} 
+            icon={Shield} 
+            colorClass="text-rose-600" 
+        />
+        <SummaryItem 
+            label="Network Health" 
+            value="99.8%" 
+            icon={Activity} 
+            colorClass="text-emerald-600" 
+        />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Main Analytics Grid */}
+        <div className="xl:col-span-2 space-y-6">
+          <div className="card">
             <div className="flex items-center justify-between mb-8">
-                <h3 className="font-bold text-lg text-text">System Performance</h3>
-                <TrendingUp className="text-green-500 group-hover:scale-110 transition-transform" />
-            </div>
-            <div className="space-y-8">
-                <div>
-                     <div className="flex justify-between items-end mb-2">
-                        <p className="text-sm font-bold text-slate-500">AI Optimization Efficiency</p>
-                        <span className="text-3xl font-black text-primary">A+</span>
-                     </div>
-                     <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-                        <div className="bg-primary h-full w-[94%] transition-all duration-1000"></div>
-                     </div>
-                </div>
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-colors hover:bg-slate-100">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Inference State</p>
-                        <p className="text-xl font-bold text-text">OPTIMIZED</p>
-                    </div>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-colors hover:bg-slate-100">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Backend Hub</p>
-                        <p className="text-xl font-bold text-text">SYNCED</p>
-                    </div>
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <TrendingUp size={16} className="text-primary" />
+                    Throughput Analysis (Hourly)
+                </h3>
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <span className="w-3 h-3 bg-primary bg-opacity-20 border border-primary border-opacity-30 rounded-full" />
+                    Vehicle Density
                 </div>
             </div>
+            
+            <div className="h-[400px] w-full mt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <XAxis 
+                    dataKey="time" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} 
+                    dy={10}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#64748B', fontSize: 11, fontWeight: 500}} 
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      borderRadius: '0px', 
+                      border: '1px solid #E2E8F0', 
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', 
+                      padding: '12px'
+                    }}
+                    itemStyle={{ color: '#1B365D', fontWeight: '700', fontSize: '12px' }}
+                    labelStyle={{ color: '#64748B', marginBottom: '8px', fontSize: '10px', fontWeight: '600' }}
+                  />
+                  <Area 
+                    type="stepAfter" 
+                    dataKey="vehicles" 
+                    stroke="#1B365D" 
+                    strokeWidth={2}
+                    fill="#1B365D" 
+                    fillOpacity={0.05} 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="card">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6">Regional Capacity Status</h3>
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                    <thead>
+                        <tr className="border-b border-border bg-slate-50">
+                            <th className="px-4 py-3 font-bold text-slate-500 uppercase text-[10px]">Location ID</th>
+                            <th className="px-4 py-3 font-bold text-slate-500 uppercase text-[10px]">Sector Name</th>
+                            <th className="px-4 py-3 font-bold text-slate-500 uppercase text-[10px]">Capacity</th>
+                            <th className="px-4 py-3 font-bold text-slate-500 uppercase text-[10px]">Flow Status</th>
+                            <th className="px-4 py-3 font-bold text-slate-500 uppercase text-[10px]">Efficiency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[
+                            { id: 'J-001', name: 'Downtown Central', capacity: '82%', status: 'Nominal', efficiency: '94.2%' },
+                            { id: 'J-002', name: 'West Bridge Port', capacity: '45%', status: 'Low', efficiency: '98.5%' },
+                            { id: 'J-003', name: 'Industrial Parkway', capacity: '91%', status: 'Critical', efficiency: '81.0%' },
+                            { id: 'J-004', name: 'North Residential', capacity: '12%', status: 'Optimal', efficiency: '99.9%' },
+                        ].map((row, i) => (
+                            <tr key={i} className="border-b border-border hover:bg-slate-50 transition-colors">
+                                <td className="px-4 py-3 font-mono text-xs">{row.id}</td>
+                                <td className="px-4 py-3 font-semibold">{row.name}</td>
+                                <td className="px-4 py-3 tabular-nums">{row.capacity}</td>
+                                <td className="px-4 py-3">
+                                    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-sm ${
+                                        row.status === 'Critical' ? 'bg-rose-100 text-rose-700' : 
+                                        row.status === 'Nominal' ? 'bg-blue-100 text-blue-700' : 
+                                        'bg-emerald-100 text-emerald-700'
+                                    }`}>
+                                        {row.status}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 tabular-nums text-slate-500">{row.efficiency}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+          </div>
         </div>
-        
-        <div className="card bg-primary text-white border-none relative overflow-hidden flex flex-col justify-center py-10">
-            <Car size={200} className="absolute -right-20 -bottom-20 text-white/5 rotate-12" />
-            <div className="relative z-10 text-center px-10">
-                <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white/50 mb-2">Traffic Enforcement Active</h4>
-                <p className="text-4xl font-black mb-6 leading-tight">Securing 24 monitored junctions across the network.</p>
-                <div className="flex justify-center gap-4">
-                    <div className="px-6 py-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
-                        <p className="text-[10px] font-black opacity-50 uppercase">Network Health</p>
-                        <p className="text-lg font-bold">100.0%</p>
+
+        {/* Sidebar Info Section */}
+        <div className="space-y-6">
+            <div className="card">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 border-b border-border pb-4">Incident Log</h3>
+                <div className="space-y-4">
+                    {[
+                        { label: 'Lane Obstruction', time: '14:22', type: 'Warning' },
+                        { label: 'Signal Malfunction', time: '13:45', type: 'Critical' },
+                        { label: 'Heavy Congestion', time: '12:10', type: 'Info' }
+                    ].map((log, i) => (
+                        <div key={i} className="flex gap-4 p-3 border border-border rounded-sm hover:border-slate-300 transition-colors">
+                            <div className={`w-1 h-auto ${log.type === 'Critical' ? 'bg-rose-500' : log.type === 'Warning' ? 'bg-amber-500' : 'bg-blue-500'}`} />
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">{log.label}</p>
+                                <p className="text-[10px] text-slate-500 font-medium uppercase mt-1">{log.time} // SECTOR-7G</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <button className="w-full mt-6 py-2 text-xs font-bold text-primary hover:underline uppercase tracking-widest bg-slate-50 border border-border">
+                    View Complete Log
+                </button>
+            </div>
+
+            <div className="card bg-slate-900 text-white">
+                <div className="flex items-center gap-3 mb-6">
+                    <Database size={20} className="text-accent" />
+                    <h3 className="text-sm font-bold uppercase tracking-wider">Storage & API</h3>
+                </div>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-400">Database Engine</span>
+                        <span className="font-mono">PostgreSQL 14.x</span>
                     </div>
-                    <div className="px-6 py-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
-                        <p className="text-[10px] font-black opacity-50 uppercase">Active Alerts</p>
-                        <p className="text-lg font-bold">{activeAlerts.length}</p>
+                    <div className="flex justify-between items-center text-xs">
+                        <span className="text-slate-400">Storage Usage</span>
+                        <span className="font-mono tabular-nums">4.2 GB / 10 GB</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2">
+                        <div className="bg-accent h-full w-[42%]" />
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-slate-800 space-y-2">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Connected Instances</p>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-sm border border-emerald-500/20">YOLO-NODE-01</span>
+                            <span className="px-2 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-sm border border-emerald-500/20">SUMO-SIM-04</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -218,15 +280,5 @@ const Home = () => {
     </div>
   );
 };
-
-// Simple Shield icon for the placeholder
-const Shield = (props) => (
-    <svg 
-        {...props} 
-        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-    >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-    </svg>
-)
 
 export default Home;

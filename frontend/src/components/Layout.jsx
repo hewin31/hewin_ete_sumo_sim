@@ -9,11 +9,11 @@ const Layout = ({ isAuthenticated, onLogout, title }) => {
   }
 
   return (
-    <div className="flex w-full min-h-screen bg-background">
+    <div className="flex w-full min-h-screen">
       <Sidebar onLogout={onLogout} />
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar title={title} />
-        <main className="p-8 overflow-y-auto">
+        <main className="p-8 overflow-y-auto bg-background">
           <Outlet />
         </main>
       </div>

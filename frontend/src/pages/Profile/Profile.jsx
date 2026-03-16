@@ -10,148 +10,190 @@ import {
   Key, 
   Bell, 
   Languages,
-  ArrowRight
+  ShieldCheck,
+  Zap,
+  Globe,
+  Settings,
+  Clock,
+  ExternalLink,
+  ChevronRight,
+  Database,
+  Terminal,
+  FileText
 } from 'lucide-react';
+
+const ProfileField = ({ label, value, icon: Icon, isEditing }) => (
+    <div className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
+        <div className="flex items-center gap-4">
+            <div className="p-2 bg-slate-100 rounded-sm text-slate-500">
+                <Icon size={16} />
+            </div>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest min-w-[140px]">{label}</span>
+        </div>
+        <div className="flex-1 text-right">
+            {isEditing ? (
+                <input 
+                    type="text" 
+                    defaultValue={value} 
+                    className="bg-white border border-border px-3 py-1.5 text-xs font-semibold focus:ring-1 focus:ring-accent outline-none w-full max-w-sm text-right"
+                />
+            ) : (
+                <span className="text-sm font-semibold text-slate-900">{value}</span>
+            )}
+        </div>
+    </div>
+);
 
 const Profile = ({ onLogout }) => {
   const [profile, setProfile] = useState({
-    name: 'John Doe',
-    employeeId: 'TM-7829-45',
-    department: 'Metropolitan Traffic Control',
-    email: 'john.doe@traffic.gov',
-    position: 'Regional Operations Manager',
-    location: 'New York Command Center',
-    shift: '08:00 AM - 04:00 PM'
+    name: 'Antony',
+    employeeId: 'RZ-HQ-001',
+    department: 'Metropolitan Traffic Intelligence',
+    email: 'antony.lead@roadzen.ai',
+    position: 'Lead System Architecture',
+    location: 'Central Command Hub',
+    shift: '08:00 AM - 04:00 PM',
+    clearance: 'Level 5 Full Admin'
   });
 
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row gap-8 items-start">
-        {/* Profile Card */}
-        <div className="w-full md:w-80 space-y-6">
-          <div className="card text-center p-8 relative overflow-hidden">
-             <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-primary to-secondary"></div>
-             <div className="relative z-10">
-                <div className="w-24 h-24 bg-white rounded-2xl mx-auto p-1 shadow-xl -mt-4">
-                   <div className="w-full h-full bg-secondary/10 rounded-xl flex items-center justify-center text-secondary text-3xl font-black">
-                      JD
-                   </div>
-                </div>
-                <h3 className="text-xl font-bold text-text mt-4">{profile.name}</h3>
-                <p className="text-sm text-gray-500">{profile.position}</p>
-                <div className="inline-flex mt-4 bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                   Level 4 clearance
-                </div>
-             </div>
-             
-             <div className="mt-8 pt-8 border-t border-border space-y-4">
-                <button 
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-background text-text rounded-xl font-bold hover:bg-gray-200 transition-all border border-border"
-                >
-                   <Edit2 size={16} /> {isEditing ? 'Cancel Edit' : 'Edit Profile'}
-                </button>
-                <button 
-                  onClick={onLogout}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all"
-                >
-                   <LogOut size={16} /> Logout System
-                </button>
-             </div>
-          </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center justify-between border-b border-border pb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight uppercase">User Directory Record</h2>
+          <p className="text-sm text-slate-500 mt-1 uppercase tracking-wider font-medium">ID: {profile.employeeId} // Personnel Cluster</p>
+        </div>
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={() => setIsEditing(!isEditing)}
+                className="btn-secondary flex items-center gap-2"
+            >
+                <Edit2 size={14} /> {isEditing ? 'Discard Changes' : 'Modifiy Record'}
+            </button>
+            <button 
+                onClick={onLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold uppercase tracking-wider hover:bg-rose-100 transition-colors"
+            >
+                <LogOut size={14} /> Terminate Session
+            </button>
+        </div>
+      </div>
 
-          <div className="card">
-             <h4 className="font-bold text-sm text-gray-400 uppercase tracking-widest mb-4">Quick Stats</h4>
-             <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-background rounded-xl">
-                   <p className="text-xl font-bold text-text">124</p>
-                   <p className="text-[10px] text-gray-400 uppercase">Issues Solved</p>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Primary Identity Section */}
+        <div className="xl:col-span-1 space-y-6">
+            <div className="card text-center py-10">
+                <div className="w-24 h-24 bg-slate-100 border border-border rounded-sm mx-auto mb-6 flex items-center justify-center text-slate-400">
+                    <User size={48} strokeWidth={1} />
                 </div>
-                <div className="text-center p-3 bg-background rounded-xl">
-                   <p className="text-xl font-bold text-text">42d</p>
-                   <p className="text-[10px] text-gray-400 uppercase">Uptime Streak</p>
+                <div>
+                    <h3 className="text-xl font-bold text-slate-900 tracking-tight uppercase italic">{profile.name}</h3>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 mb-4">Lead Systems Analyst</p>
                 </div>
-             </div>
-          </div>
+                <div className="inline-flex px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-bold uppercase tracking-widest">
+                    <ShieldCheck size={12} className="mr-2" /> Clearance Level 5
+                </div>
+            </div>
+
+            <div className="card bg-slate-900 text-white">
+                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 border-b border-white/10 pb-4">Session Telemetry</h4>
+                <div className="space-y-6">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Login Timestamp</span>
+                        <span className="text-sm font-mono tabular-nums">2026-03-16 09:42:12 UTC</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Inference Node</span>
+                        <span className="text-sm font-mono uppercase">Node-Alpha-HQ-01</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Cluster Peer IP</span>
+                        <span className="text-sm font-mono tracking-widest tabular-nums">192.168.1.104</span>
+                    </div>
+                </div>
+                <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">System Synchronized</span>
+                    </div>
+                    <Zap size={14} className="text-emerald-500" />
+                </div>
+            </div>
         </div>
 
-        {/* Detailed Info */}
-        <div className="flex-1 space-y-6">
-          <div className="card">
-             <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-text flex items-center gap-2">
-                   <User className="text-secondary" /> Personal Information
-                </h3>
-             </div>
-             
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-                {[
-                  { label: 'Employee ID', value: profile.employeeId, icon: Shield, name: 'employeeId' },
-                  { label: 'Department', value: profile.department, icon: Briefcase, name: 'department' },
-                  { label: 'Email Address', value: profile.email, icon: Mail, name: 'email' },
-                  { label: 'Primary Location', value: profile.location, icon: MapPin, name: 'location' },
-                ].map(field => (
-                  <div key={field.label} className="space-y-2">
-                     <label className="text-xs font-bold text-gray-400 uppercase flex items-center gap-2">
-                        <field.icon size={12} /> {field.label}
-                     </label>
-                     {isEditing ? (
-                       <input 
-                         type="text" 
-                         className="input-field" 
-                         defaultValue={field.value}
-                       />
-                     ) : (
-                       <p className="text-lg font-semibold text-text">{field.value}</p>
-                     )}
-                  </div>
-                ))}
-             </div>
-          </div>
+        {/* Detailed Administrative Data */}
+        <div className="xl:col-span-2 space-y-6">
+            <div className="card !p-0">
+                <div className="p-4 border-b border-border bg-slate-50 flex items-center justify-between">
+                    <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <Database size={14} /> Personnel Data Attributes
+                    </h3>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">REG-PF-004-A</span>
+                </div>
+                <div className="p-8 space-y-1">
+                    <ProfileField label="Registry Full Name" value={profile.name} icon={User} isEditing={isEditing} />
+                    <ProfileField label="Employee ID / UID" value={profile.employeeId} icon={Shield} isEditing={isEditing} />
+                    <ProfileField label="Authorized Email" value={profile.email} icon={Mail} isEditing={isEditing} />
+                    <ProfileField label="Department/Org" value={profile.department} icon={Briefcase} isEditing={isEditing} />
+                    <ProfileField label="Operational Position" value={profile.position} icon={Terminal} isEditing={isEditing} />
+                    <ProfileField label="Assigned Station" value={profile.location} icon={MapPin} isEditing={isEditing} />
+                    <ProfileField label="Scheduled Shift" value={profile.shift} icon={Clock} isEditing={isEditing} />
+                </div>
+                {isEditing && (
+                    <div className="p-4 bg-slate-50 border-t border-border flex justify-end gap-3">
+                        <button className="btn-secondary" onClick={() => setIsEditing(false)}>Cancel Edit</button>
+                        <button className="btn-primary" onClick={() => setIsEditing(false)}>Save Directory Entries</button>
+                    </div>
+                )}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <div className="card group hover:border-secondary transition-all cursor-pointer">
-                <div className="flex items-center gap-4">
-                   <div className="p-3 bg-secondary/10 text-secondary rounded-xl group-hover:bg-secondary group-hover:text-white transition-all">
-                      <Key size={24} />
-                   </div>
-                   <div>
-                      <h4 className="font-bold text-text">Security Settings</h4>
-                      <p className="text-sm text-gray-500">2FA, Password & Keys</p>
-                   </div>
-                   <ArrowRight className="ml-auto text-gray-300" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="card hover:border-primary transition-colors cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-slate-100 rounded-sm text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <Key size={20} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Security Credentials</h4>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Multi-Factor & RSA Settings</p>
+                            </div>
+                        </div>
+                        <ChevronRight size={16} className="text-slate-300" />
+                    </div>
                 </div>
-             </div>
-             
-             <div className="card group hover:border-secondary transition-all cursor-pointer">
-                <div className="flex items-center gap-4">
-                   <div className="p-3 bg-accent/10 text-accent rounded-xl group-hover:bg-accent group-hover:text-white transition-all">
-                      <Bell size={24} />
-                   </div>
-                   <div>
-                      <h4 className="font-bold text-text">Notification Prefs</h4>
-                      <p className="text-sm text-gray-500">Alert triggers & sounds</p>
-                   </div>
-                   <ArrowRight className="ml-auto text-gray-300" />
+                <div className="card hover:border-primary transition-colors cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-slate-100 rounded-sm text-slate-500 group-hover:bg-primary group-hover:text-white transition-colors">
+                                <Bell size={20} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight">System Alerts Config</h4>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Notification Thresholds</p>
+                            </div>
+                        </div>
+                        <ChevronRight size={16} className="text-slate-300" />
+                    </div>
                 </div>
-             </div>
-          </div>
+            </div>
 
-          <div className="card bg-gray-50/50 border-dashed">
-             <h4 className="font-bold text-sm text-gray-400 uppercase tracking-widest mb-6">Regional Settings</h4>
-             <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-border shadow-sm">
-                   <Languages size={16} className="text-gray-400" />
-                   <span className="text-sm font-bold">English (US)</span>
+            <div className="card bg-slate-50 border-dashed border-2 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white border border-border text-slate-400">
+                        <FileText size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-900 uppercase tracking-tight italic">Generate Personnel Log Summary</h4>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-1">Export full activity history for current cycle</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-border shadow-sm">
-                   <Clock size={16} className="text-gray-400" />
-                   <span className="text-sm font-bold">GMT -5 (EST)</span>
-                </div>
-             </div>
-          </div>
+                <button className="btn-secondary flex items-center gap-2">
+                    Initialize Report <ExternalLink size={14} />
+                </button>
+            </div>
         </div>
       </div>
     </div>
