@@ -10,30 +10,47 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Mock services that return mock data with a slight delay to simulate network
+// Real API Services
 export const trafficService = {
   getJunctions: async () => {
+    // Keep junctions mock for now as we don't have a DB table for them yet
     return new Promise((resolve) => {
-      setTimeout(() => resolve(junctions), 500);
+      setTimeout(() => resolve(junctions), 300);
     });
   },
   
   getAlerts: async () => {
     return new Promise((resolve) => {
-      setTimeout(() => resolve(alerts), 500);
+      setTimeout(() => resolve(alerts), 300);
     });
   },
   
   getTrafficStats: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(trafficStats), 500);
-    });
+    try {
+      const response = await api.get('/stats/history');
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch traffic history:", err);
+      return trafficStats; // Fallback to mock
+    }
   },
   
   getSystemOverview: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(systemOverview), 500);
-    });
+    try {
+      const response = await api.get('/stats/overview');
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch system overview:", err);
+      return systemOverview; // Fallback to mock
+    }
+  },
+
+  updateSimulationStats: async (data) => {
+    try {
+      await api.post('/stats/update', data);
+    } catch (err) {
+      console.error("Failed to update simulation stats:", err);
+    }
   },
 
   reportIssue: async (issueData) => {

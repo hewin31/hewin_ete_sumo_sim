@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   RefreshCw
 } from 'lucide-react';
-import { YOLO_API_BASE, YOLO_WS_BASE } from '../../services/api';
+import { YOLO_API_BASE, YOLO_WS_BASE, trafficService } from '../../services/api';
 
 const Simulation = () => {
   const [isSystemOn, setIsSystemOn] = useState(false);
@@ -25,6 +25,27 @@ const Simulation = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const wsRef = useRef(null);
   const cycleIntervalRef = useRef(null);
+  const lastPushRef = useRef(0);
+  
+  // Push statistics to backend every 5 seconds
+  useEffect(() => {
+    if (isSystemOn && detectionData.detections.length > 0) {
+      const now = Date.now();
+      if (now - lastPushRef.current > 5000) {
+        lastPushRef.current = now;
+        
+        const current_vehicles = detectionData.detections.length;
+        const current_density = Math.min(100, Math.round((current_vehicles / 20) * 100)); // Normalized density
+        const has_emergency = detectionData.detections.some(d => d.label === 'ambulance' || d.label === 'fire truck');
+        
+        trafficService.updateSimulationStats({
+          current_vehicles,
+          current_density,
+          has_emergency
+        });
+      }
+    }
+  }, [isSystemOn, detectionData]);
   
   // Reconnect logic for WebSocket
   const connectWebSocket = () => {

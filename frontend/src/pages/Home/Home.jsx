@@ -16,10 +16,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell
+  ResponsiveContainer
 } from 'recharts';
 import { trafficService } from '../../services/api';
 
@@ -57,27 +54,25 @@ const Home = () => {
       setActiveAlerts(alerts.filter(a => a.status === 'Active'));
     };
     fetchData();
+
+    // Auto-refresh every 10 seconds to show incremental YOLO detections
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!stats) return <div className="animate-pulse">Loading dashboard...</div>;
-
-  const barData = [
-    { name: 'Junction A', value: 400, color: '#22C55E' },
-    { name: 'Junction B', value: 300, color: '#EAB308' },
-    { name: 'Junction C', value: 200, color: '#F97316' },
-    { name: 'Junction D', value: 150, color: '#EF4444' },
-  ];
+  if (!stats) return <div className="animate-pulse flex items-center justify-center h-screen text-primary font-bold">Synchronizing Neural Data...</div>;
 
   return (
     <div className="space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-        <StatCard title="Total Junctions" value={stats.totalJunctions} icon={MapPin} color="bg-primary" />
-        <StatCard title="Active Signals" value={stats.activeSignals} icon={Activity} color="bg-secondary" trend={2} />
-        <StatCard title="Emergency" value={stats.emergencyVehicles} icon={Users} color="bg-traffic-blue" />
-        <StatCard title="Accidents" value={stats.detectedAccidents} icon={AlertCircle} color="bg-traffic-purple" />
-        <StatCard title="Road Blocks" value={stats.roadBlocks} icon={Car} color="bg-traffic-black" />
-        <StatCard title="Congestion" value={stats.overallCongestion} icon={TrendingUp} color="bg-traffic-orange" trend={-5} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6">
+        <StatCard title="Total Junctions" value={stats.total_junctions} icon={MapPin} color="bg-primary" />
+        <StatCard title="Active Signals" value={stats.active_signals} icon={Activity} color="bg-secondary" />
+        <StatCard title="Total Vehicles" value={stats.total_vehicles_detected} icon={Car} color="bg-indigo-600" />
+        <StatCard title="Emergency" value={stats.emergency_vehicles} icon={Users} color="bg-traffic-blue" />
+        <StatCard title="Accidents" value={stats.detected_accidents} icon={AlertCircle} color="bg-traffic-purple" />
+        <StatCard title="Road Blocks" value={stats.road_blocks} icon={Car} color="bg-traffic-black" />
+        <StatCard title="Congestion" value={stats.overall_congestion || 'Low'} icon={TrendingUp} color="bg-traffic-orange" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -85,13 +80,13 @@ const Home = () => {
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-bold text-lg text-text">Traffic Volume & Density</h3>
-              <p className="text-sm text-gray-500">Real-time system-wide statistics</p>
+              <h3 className="font-bold text-lg text-text">Live Traffic Analytics</h3>
+              <p className="text-sm text-gray-500">Real-time detection synchronization</p>
             </div>
-            <select className="bg-background border-none rounded-lg px-3 py-1.5 text-sm outline-none">
-              <option>Last 24 Hours</option>
-              <option>Last 7 Days</option>
-            </select>
+            <div className="flex items-center gap-2 text-xs font-bold text-green-500 bg-green-50 px-3 py-1.5 rounded-full">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
+                POLLING ACTIVE
+            </div>
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -101,20 +96,34 @@ const Home = () => {
                     <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
                     <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
                   </linearGradient>
+                  <linearGradient id="colorVehicles" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
                 <Tooltip 
-                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+                  contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2)'}}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="density" 
+                  name="Density (%)"
                   stroke="#4F46E5" 
                   strokeWidth={3}
                   fillOpacity={1} 
                   fill="url(#colorDensity)" 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="vehicles" 
+                  name="Vehicles"
+                  stroke="#10B981" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorVehicles)" 
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -128,8 +137,8 @@ const Home = () => {
             <span className="bg-red-100 text-red-600 px-2.5 py-1 rounded-full text-xs font-bold animate-pulse">LIVE</span>
           </div>
           <div className="space-y-4">
-            {activeAlerts.map(alert => (
-              <div key={alert.id} className="flex gap-4 p-3 rounded-lg bg-background hover:bg-gray-100 transition-colors cursor-pointer group">
+            {activeAlerts.length > 0 ? activeAlerts.map(alert => (
+              <div key={alert.id} className="flex gap-4 p-3 rounded-lg bg-background hover:bg-gray-100 transition-colors cursor-pointer group border border-transparent hover:border-border">
                 <div className={`w-2 h-10 rounded-full flex-shrink-0 ${
                   alert.type === 'Accident' ? 'bg-traffic-purple' : 
                   alert.type === 'Road Block' ? 'bg-traffic-black' : 'bg-traffic-blue'
@@ -139,70 +148,85 @@ const Home = () => {
                   <p className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-1">
                     <MapPin size={10} /> {alert.location}
                   </p>
-                  <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                    <Clock size={10} /> Just now
-                  </p>
                 </div>
                 <button className="self-center p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <ArrowRight size={14} className="text-gray-400" />
                 </button>
               </div>
-            ))}
-            <button className="w-full py-3 text-sm text-secondary font-semibold hover:underline border-t border-border mt-2">
-              View All Alerts
+            )) : (
+                <div className="py-10 text-center space-y-3">
+                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
+                        <Shield className="text-slate-300" size={24} />
+                    </div>
+                    <p className="text-sm text-slate-400 font-medium">No critical incidents detected.</p>
+                </div>
+            )}
+            <button className="w-full py-4 text-xs text-secondary font-black uppercase tracking-widest hover:underline border-t border-border mt-4">
+              Access Full Archive
             </button>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="card">
-          <h3 className="font-bold text-lg text-text mb-6">Congestion by Zone</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barData} layout="vertical" margin={{ left: 40 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                <Tooltip cursor={{fill: 'transparent'}} />
-                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {barData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="card group">
+            <div className="flex items-center justify-between mb-8">
+                <h3 className="font-bold text-lg text-text">System Performance</h3>
+                <TrendingUp className="text-green-500 group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="space-y-8">
+                <div>
+                     <div className="flex justify-between items-end mb-2">
+                        <p className="text-sm font-bold text-slate-500">AI Optimization Efficiency</p>
+                        <span className="text-3xl font-black text-primary">A+</span>
+                     </div>
+                     <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                        <div className="bg-primary h-full w-[94%] transition-all duration-1000"></div>
+                     </div>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-colors hover:bg-slate-100">
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Inference State</p>
+                        <p className="text-xl font-bold text-text">OPTIMIZED</p>
+                    </div>
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-colors hover:bg-slate-100">
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Backend Hub</p>
+                        <p className="text-xl font-bold text-text">SYNCED</p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div className="card flex flex-col justify-between">
-          <div>
-            <h3 className="font-bold text-lg text-text mb-2">Efficiency Rating</h3>
-            <p className="text-sm text-gray-500 mb-6">AI Optimization performance</p>
-            <div className="flex items-end gap-2 mb-2">
-              <span className="text-4xl font-black text-primary">A+</span>
-              <span className="text-green-500 font-bold mb-1 flex items-center gap-1">
-                <TrendingUp size={16} /> 12.5%
-              </span>
+        <div className="card bg-primary text-white border-none relative overflow-hidden flex flex-col justify-center py-10">
+            <Car size={200} className="absolute -right-20 -bottom-20 text-white/5 rotate-12" />
+            <div className="relative z-10 text-center px-10">
+                <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white/50 mb-2">Traffic Enforcement Active</h4>
+                <p className="text-4xl font-black mb-6 leading-tight">Securing 24 monitored junctions across the network.</p>
+                <div className="flex justify-center gap-4">
+                    <div className="px-6 py-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
+                        <p className="text-[10px] font-black opacity-50 uppercase">Network Health</p>
+                        <p className="text-lg font-bold">100.0%</p>
+                    </div>
+                    <div className="px-6 py-3 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10">
+                        <p className="text-[10px] font-black opacity-50 uppercase">Active Alerts</p>
+                        <p className="text-lg font-bold">{activeAlerts.length}</p>
+                    </div>
+                </div>
             </div>
-            <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-              <div className="bg-accent h-full w-[92%]"></div>
-            </div>
-          </div>
-          <div className="mt-8 grid grid-cols-2 gap-4">
-            <div className="p-4 bg-background rounded-xl text-center">
-              <p className="text-xs text-gray-400 uppercase tracking-tighter">Delay Reduced</p>
-              <p className="text-xl font-bold text-text">14.2m</p>
-            </div>
-            <div className="p-4 bg-background rounded-xl text-center">
-              <p className="text-xs text-gray-400 uppercase tracking-tighter">CO2 Saved</p>
-              <p className="text-xl font-bold text-text">2.4t</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 };
+
+// Simple Shield icon for the placeholder
+const Shield = (props) => (
+    <svg 
+        {...props} 
+        xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+)
 
 export default Home;
