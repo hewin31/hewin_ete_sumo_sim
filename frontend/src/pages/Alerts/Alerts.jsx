@@ -12,7 +12,8 @@ import {
   ChevronRight,
   MoreVertical,
   Download,
-  Activity
+  Activity,
+  X
 } from 'lucide-react';
 import { trafficService } from '../../services/api';
 
@@ -21,15 +22,49 @@ const Alerts = () => {
   const [filter, setFilter] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    fetchAlerts();
+  }, []);
+
+  const fetchAlerts = async () => {
+    try {
       const data = await trafficService.getAlerts();
       setAlerts(data);
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+    } finally {
       setIsLoading(false);
-    };
-    fetchData();
-  }, []);
+    }
+  };
+
+  const handleStatusUpdate = async (alertId, newStatus) => {
+    setUpdatingId(alertId);
+    try {
+      await trafficService.updateAlert(alertId, newStatus);
+      // Update local state
+      setAlerts(prev => prev.map(alert =>
+        alert.id === alertId ? { ...alert, status: newStatus } : alert
+      ));
+    } catch (err) {
+      console.error("Failed to update alert:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDeleteAlert = async (alertId) => {
+    if (!confirm('Are you sure you want to delete this alert?')) return;
+
+    try {
+      await trafficService.deleteAlert(alertId);
+      // Update local state
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+    } catch (err) {
+      console.error("Failed to delete alert:", err);
+    }
+  };
 
   const filteredAlerts = alerts.filter(a => {
     const matchesFilter = filter === 'All' ? true : a.status === filter;
@@ -148,11 +183,29 @@ const Alerts = () => {
                             <td className="px-6 py-4 tabular-nums text-slate-500">{alert.timestamp}</td>
                             <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                    <button className="p-2 text-slate-400 hover:text-primary transition-colors">
-                                        <FileText size={16} />
-                                    </button>
-                                    <button className="p-2 text-slate-400 hover:text-primary transition-colors">
-                                        <MoreVertical size={16} />
+                                    {alert.status === 'Active' ? (
+                                        <button
+                                            onClick={() => handleStatusUpdate(alert.id, 'Resolved')}
+                                            disabled={updatingId === alert.id}
+                                            className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-100 transition-colors disabled:opacity-50"
+                                        >
+                                            {updatingId === alert.id ? '...' : 'Resolve'}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleStatusUpdate(alert.id, 'Active')}
+                                            disabled={updatingId === alert.id}
+                                            className="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold uppercase tracking-widest hover:bg-rose-100 transition-colors disabled:opacity-50"
+                                        >
+                                            {updatingId === alert.id ? '...' : 'Reactivate'}
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleDeleteAlert(alert.id)}
+                                        className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
+                                        title="Delete Alert"
+                                    >
+                                        <X size={16} />
                                     </button>
                                 </div>
                             </td>

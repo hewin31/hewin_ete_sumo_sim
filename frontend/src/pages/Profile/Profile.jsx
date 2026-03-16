@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Mail, 
@@ -19,8 +19,11 @@ import {
   ChevronRight,
   Database,
   Terminal,
-  FileText
+  FileText,
+  RefreshCw,
+  X
 } from 'lucide-react';
+import { authService } from '../../services/api';
 
 const ProfileField = ({ label, value, icon: Icon, isEditing }) => (
     <div className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
@@ -44,19 +47,46 @@ const ProfileField = ({ label, value, icon: Icon, isEditing }) => (
     </div>
 );
 
-const Profile = ({ onLogout }) => {
-  const [profile, setProfile] = useState({
-    name: 'Antony',
-    employeeId: 'RZ-HQ-001',
-    department: 'Metropolitan Traffic Intelligence',
-    email: 'antony.lead@roadzen.ai',
-    position: 'Lead System Architecture',
-    location: 'Central Command Hub',
-    shift: '08:00 AM - 04:00 PM',
-    clearance: 'Level 5 Full Admin'
-  });
-
+const Profile = ({ user, onLogout }) => {
+  const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.username,
+        employeeId: 'RZ-HQ-001', // Could be made dynamic
+        department: 'Metropolitan Traffic Intelligence',
+        email: user.email,
+        position: 'Lead System Architecture',
+        location: 'Central Command Hub',
+        shift: '08:00 AM - 04:00 PM',
+        clearance: 'Level 5 Full Admin',
+        role: user.role,
+        created_at: user.created_at,
+        last_login: user.last_login
+      });
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    // Profile editing disabled in simple auth mode
+    setIsEditing(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh] text-slate-400">
+        <RefreshCw size={24} className="animate-spin mr-3" />
+        <span className="text-sm font-semibold uppercase tracking-widest">Loading Profile...</span>
+      </div>
+    );
+  }
+
+  if (!profile) return null;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -67,16 +97,42 @@ const Profile = ({ onLogout }) => {
         </div>
         <div className="flex items-center gap-3">
             <button 
-                onClick={() => setIsEditing(!isEditing)}
-                className="btn-secondary flex items-center gap-2"
+                onClick={isEditing ? handleSaveProfile : () => setIsEditing(true)}
+                disabled={isSaving}
+                className="btn-secondary flex items-center gap-2 disabled:opacity-50"
             >
-                <Edit2 size={14} /> {isEditing ? 'Discard Changes' : 'Modifiy Record'}
+                {isSaving ? (
+                    <RefreshCw size={14} className="animate-spin" />
+                ) : (
+                    <Edit2 size={14} />
+                )}
+                {isSaving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Modify Record')}
             </button>
             <button 
-                onClick={onLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold uppercase tracking-wider hover:bg-rose-100 transition-colors"
+                onClick={() => {
+                    if (isEditing) {
+                        setIsEditing(false);
+                        fetchProfile(); // Reset changes
+                    } else {
+                        authService.logout();
+                        onLogout();
+                    }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                    isEditing 
+                        ? 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200' 
+                        : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                }`}
             >
-                <LogOut size={14} /> Terminate Session
+                {isEditing ? (
+                    <>
+                        <X size={14} /> Cancel
+                    </>
+                ) : (
+                    <>
+                        <LogOut size={14} /> Terminate Session
+                    </>
+                )}
             </button>
         </div>
       </div>

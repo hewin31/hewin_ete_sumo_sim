@@ -55,21 +55,24 @@ const ReportIssue = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    await trafficService.reportIssue(formData);
-    
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    
-    setTimeout(() => {
-      setIsSuccess(false);
-      setFormData({
-        junctionId: '',
-        issueType: 'System Malfunction',
-        description: '',
-        urgency: 'Medium'
-      });
-      setImagePreview(null);
-    }, 3000);
+    try {
+      await trafficService.reportIssue(formData);
+      setIsSuccess(true);
+      
+      setTimeout(() => {
+        setIsSuccess(false);
+        setFormData({
+          junctionId: '',
+          issueType: 'System Malfunction',
+          description: '',
+          urgency: 'Medium'
+        });
+        setImagePreview(null);
+      }, 3000);
+    } catch (err) {
+      console.error("Failed to report issue:", err);
+      setIsSubmitting(false);
+    }
   };
 
   return (

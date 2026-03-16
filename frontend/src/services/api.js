@@ -10,21 +10,83 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
+// Authentication services
+export const authService = {
+  login: async (email, password) => {
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { user } = response.data;
+      return { user };
+    } catch (err) {
+      throw err.response?.data?.error || 'Login failed';
+    }
+  },
+
+  register: async (userData) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Registration failed';
+    }
+  },
+
+  logout: () => {
+    // No tokens to clear in simple auth
+  }
+};
+
 // Real API Services
 export const trafficService = {
   getJunctions: async () => {
-    // Keep junctions mock for now as we don't have a DB table for them yet
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(junctions), 300);
-    });
+    try {
+      const response = await api.get('/signals/junctions');
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch junctions:", err);
+      // Fallback to mock data if API fails
+      return junctions;
+    }
   },
-  
+
   getAlerts: async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(alerts), 300);
-    });
+    try {
+      const response = await api.get('/alerts');
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+      // Fallback to mock data if API fails
+      return alerts;
+    }
   },
-  
+
+  createAlert: async (alertData) => {
+    try {
+      const response = await api.post('/alerts', alertData);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to create alert';
+    }
+  },
+
+  updateAlert: async (id, status) => {
+    try {
+      const response = await api.put(`/alerts/${id}`, { status });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to update alert';
+    }
+  },
+
+  deleteAlert: async (id) => {
+    try {
+      const response = await api.delete(`/alerts/${id}`);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to delete alert';
+    }
+  },
+
   getTrafficStats: async () => {
     try {
       const response = await api.get('/stats/history');
@@ -34,7 +96,7 @@ export const trafficService = {
       return []; // Return empty array instead of mock
     }
   },
-  
+
   getSystemOverview: async () => {
     try {
       const response = await api.get('/stats/overview');
@@ -54,10 +116,50 @@ export const trafficService = {
   },
 
   reportIssue: async (issueData) => {
-    console.log('Reporting issue:', issueData);
-    return new Promise((resolve) => {
-      setTimeout(() => resolve({ success: true }), 1000);
-    });
+    try {
+      const response = await api.post('/issues', issueData);
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to report issue';
+    }
+  },
+
+  getReportedIssues: async () => {
+    try {
+      const response = await api.get('/issues');
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch issues:", err);
+      return [];
+    }
+  },
+
+  updateIssueStatus: async (id, status) => {
+    try {
+      const response = await api.put(`/issues/${id}`, { status });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to update issue';
+    }
+  },
+
+  getSignalOverrides: async (junctionId) => {
+    try {
+      const response = await api.get(`/signals/${junctionId}`);
+      return response.data;
+    } catch (err) {
+      console.error("Failed to fetch signal overrides:", err);
+      return [];
+    }
+  },
+
+  createSignalOverride: async (junctionId, overrides) => {
+    try {
+      const response = await api.post('/signals/override', { junction_id: junctionId, overrides });
+      return response.data;
+    } catch (err) {
+      throw err.response?.data?.error || 'Failed to create signal override';
+    }
   }
 };
 

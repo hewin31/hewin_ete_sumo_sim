@@ -73,13 +73,36 @@ const Signals = () => {
   const [isManual, setIsManual] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
-  
   const [signalStates, setSignalStates] = useState({
-    North: { color: 'red', timer: 30 },
-    South: { color: 'red', timer: 30 },
-    East: { color: 'green', timer: 45 },
-    West: { color: 'green', timer: 45 }
+    North: { color: 'green', timer: 45 },
+    South: { color: 'green', timer: 45 },
+    East: { color: 'red', timer: 30 },
+    West: { color: 'red', timer: 30 }
   });
+  
+  const [isCommitting, setIsCommitting] = useState(false);
+
+  const handleCommitChanges = async () => {
+    if (!selectedJunction || !isManual) return;
+
+    setIsCommitting(true);
+    try {
+      const overrides = Object.entries(signalStates).map(([direction, state]) => ({
+        direction,
+        color: state.color,
+        timer: state.timer
+      }));
+
+      await trafficService.createSignalOverride(selectedJunction.id, overrides);
+      
+      // Show success feedback (you could add a toast notification here)
+      console.log('Signal overrides committed successfully');
+    } catch (err) {
+      console.error('Failed to commit signal changes:', err);
+    } finally {
+      setIsCommitting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -280,8 +303,17 @@ const Signals = () => {
                     <SignalControl direction="West" state={signalStates.West} label="Vector-D" onManualSet={setManualColor} isManual={isManual} isEmergencyActive={isEmergencyActive} />
                 </div>
                 <div className="p-4 bg-slate-50">
-                    <button className="w-full btn-primary flex items-center justify-center gap-2">
-                        <Save size={16} /> COMMIT CHANGES
+                    <button 
+                        onClick={handleCommitChanges}
+                        disabled={isCommitting || !isManual}
+                        className="w-full btn-primary flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isCommitting ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
+                        {isCommitting ? 'COMMITTING...' : 'COMMIT CHANGES'}
                     </button>
                     <button className="w-full btn-secondary mt-2 flex items-center justify-center gap-2">
                         <RotateCcw size={16} /> RESET SYNC

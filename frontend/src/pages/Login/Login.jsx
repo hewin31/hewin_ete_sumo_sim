@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrafficCone, Lock, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { authService } from '../../services/api';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -14,17 +15,21 @@ const Login = ({ onLogin }) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
-    // Simple mock validation
-    setTimeout(() => {
-      if (email && password) {
-        onLogin();
-        navigate('/');
-      } else {
-        setError('CRITICAL: AUTHENTICATION FAILURE - INVALID CREDENTIALS PROVIDED');
-        setIsLoading(false);
-      }
-    }, 1000);
+
+    try {
+      // Dummy login - always succeeds
+      const dummyUser = {
+        id: 1,
+        username: 'admin',
+        email: 'admin@roadzen.ai',
+        role: 'operator'
+      };
+      onLogin(dummyUser);
+      navigate('/');
+    } catch (err) {
+      setError('CRITICAL: AUTHENTICATION FAILURE - INVALID CREDENTIALS PROVIDED');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -104,6 +109,16 @@ const Login = ({ onLogin }) => {
               "Initialize System Session"
             )}
           </button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
+            >
+              New User Registration
+            </button>
+          </div>
         </form>
 
         <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 text-center">

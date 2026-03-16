@@ -2,22 +2,23 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/smarttraffic',
+  ssl: process.env.DATABASE_URL ? {
     rejectUnauthorized: false
-  },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+  } : false,
+  max: 10,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 30000,
+  acquireTimeoutMillis: 60000,  statement_timeout: 60000,
+  query_timeout: 60000,});
 
 pool.on('connect', () => {
-  console.log('Connected to the PostgreSQL database');
+  console.log('✅ Connected to the PostgreSQL database');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  console.error('❌ Unexpected error on idle client', err);
+  // Don't exit process, just log the error
 });
 
 module.exports = {
